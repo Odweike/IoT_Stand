@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  lab-stand-controller:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      SIM_MODE: "true"
+      SAFETY_PORT: "/dev/ttyACM0"
+      STUDENT_PORT: "/dev/ttyACM1"
+      BAUDRATE: "115200"
+      UPLOAD_ENABLED: "false"
+    volumes:
+      - ./data:/data
+    # Linux example to enable serial access:
+    # devices:
+    #   - "/dev/ttyACM0:/dev/ttyACM0"
+    #   - "/dev/ttyACM1:/dev/ttyACM1"

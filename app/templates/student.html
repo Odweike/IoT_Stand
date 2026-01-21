@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Console</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body data-role="student">
+  <header>
+    <h1>Student Console</h1>
+    <p>WebSocket: <span id="ws-status">connecting...</span></p>
+  </header>
+
+  <section class="panel">
+    <h2>Actuators</h2>
+    <form id="actuators-form" class="grid">
+      <label>Pump (0-255)
+        <input id="pump" type="number" min="0" max="255" value="0" />
+      </label>
+      <label>Fan 1
+        <input id="fan1" type="number" min="0" max="255" value="0" />
+      </label>
+      <label>Fan 2
+        <input id="fan2" type="number" min="0" max="255" value="0" />
+      </label>
+      <label>Fan 3
+        <input id="fan3" type="number" min="0" max="255" value="0" />
+      </label>
+      <button type="submit">Apply</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Firmware Upload (Arduino #2)</h2>
+    <form id="firmware-form" class="grid">
+      <label>Sketch (.ino or .zip)
+        <input id="firmware-file" type="file" accept=".ino,.zip" />
+      </label>
+      <label>Board FQBN
+        <input id="board-fqbn" type="text" value="arduino:avr:uno" />
+      </label>
+      <label>Sketch Main (optional)
+        <input id="sketch-main" type="text" placeholder="main.ino" />
+      </label>
+      <button type="submit">Upload & Flash</button>
+    </form>
+    <pre id="firmware-status">waiting...</pre>
+  </section>
+
+  <section class="panel">
+    <h2>Telemetry</h2>
+    <pre id="telemetry">waiting...</pre>
+  </section>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

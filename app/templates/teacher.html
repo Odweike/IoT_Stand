@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Console</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body data-role="teacher">
+  <header>
+    <h1>Teacher Console</h1>
+    <p>WebSocket: <span id="ws-status">connecting...</span></p>
+  </header>
+
+  <section class="panel">
+    <h2>Heater Manual</h2>
+    <form id="heater-manual-form">
+      <label>Power (0-100)
+        <input id="heater-power" type="number" min="0" max="100" value="0" />
+      </label>
+      <button type="submit">Apply</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Heater Random Scenario</h2>
+    <form id="heater-random-form" class="grid">
+      <label>Min Power
+        <input id="rand-min" type="number" min="0" max="100" value="20" />
+      </label>
+      <label>Max Power
+        <input id="rand-max" type="number" min="0" max="100" value="80" />
+      </label>
+      <label>On Min (s)
+        <input id="rand-on-min" type="number" min="1" max="3600" value="2" />
+      </label>
+      <label>On Max (s)
+        <input id="rand-on-max" type="number" min="1" max="3600" value="10" />
+      </label>
+      <label>Off Min (s)
+        <input id="rand-off-min" type="number" min="1" max="3600" value="2" />
+      </label>
+      <label>Off Max (s)
+        <input id="rand-off-max" type="number" min="1" max="3600" value="10" />
+      </label>
+      <button type="submit">Start Random</button>
+    </form>
+    <button id="heater-stop" class="danger">Stop & Reset</button>
+  </section>
+
+  <section class="panel">
+    <h2>Telemetry</h2>
+    <pre id="telemetry">waiting...</pre>
+  </section>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
