@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -28,11 +27,11 @@ def test_teacher_and_student_actions(tmp_path: Path, monkeypatch) -> None:
         assert client.post("/api/teacher/drain_valve", json={"open": True}).status_code == 200
         assert client.post("/api/teacher/heater/stop").status_code == 200
         payload = {"pump": 100, "fan": [10, 20, 30]}
-        assert client.post("/api/student/actuators", json=payload).status_code == 200
+        assert client.post("/api/teacher/actuators", json=payload).status_code == 200
 
         mode_resp = client.post("/api/teacher/student_mode", json={"mode": "student"})
         assert mode_resp.status_code == 200
-        blocked = client.post("/api/student/actuators", json=payload)
+        blocked = client.post("/api/teacher/actuators", json=payload)
         assert blocked.status_code == 409
 
         files = {"file": ("sketch.ino", b"void setup(){}", "text/plain")}

@@ -65,6 +65,26 @@
   </section>
 
   <section class="panel">
+    <h2>Manual Actuators (Baseline/Web-control)</h2>
+    <form id="teacher-actuators-form" class="grid">
+      <label>Pump (0-255)
+        <input id="teacher-pump" type="number" min="0" max="255" value="0" />
+      </label>
+      <label>Fan 1
+        <input id="teacher-fan1" type="number" min="0" max="255" value="0" />
+      </label>
+      <label>Fan 2
+        <input id="teacher-fan2" type="number" min="0" max="255" value="0" />
+      </label>
+      <label>Fan 3
+        <input id="teacher-fan3" type="number" min="0" max="255" value="0" />
+      </label>
+      <button id="teacher-actuators-submit" type="submit">Apply</button>
+    </form>
+    <p id="teacher-actuators-note" class="muted"></p>
+  </section>
+
+  <section class="panel">
     <h2>Temperatures</h2>
     <div class="grid">
       <div><strong>T1:</strong> <span id="t1-value">n/a</span></div>

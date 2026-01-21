@@ -33,13 +33,13 @@ class FlashingService:
     ) -> FlashResult:
         async with self._lock:
             workdir = self._prepare_workspace(file_path)
-            sketch_path = self._resolve_sketch(workdir, sketch_main)
+            sketch_dir = self._resolve_sketch_dir(workdir, sketch_main)
             compile_cmd = [
                 settings.arduino_cli_path,
                 "compile",
                 "--fqbn",
                 board_fqbn,
-                str(sketch_path),
+                str(sketch_dir),
             ]
             compile_stdout, compile_stderr, compile_ok = await self._run_cmd(compile_cmd)
             if not compile_ok:
@@ -67,7 +67,7 @@ class FlashingService:
                 settings.student_port,
                 "--fqbn",
                 board_fqbn,
-                str(sketch_path),
+                str(sketch_dir),
             ]
             upload_stdout, upload_stderr, upload_ok = await self._run_cmd(upload_cmd)
             return FlashResult(
@@ -104,7 +104,9 @@ class FlashingService:
             with zipfile.ZipFile(file_path, "r") as zf:
                 zf.extractall(base)
         else:
-            shutil.copy(file_path, base / file_path.name)
+            sketch_dir = base / file_path.stem
+            sketch_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy(file_path, sketch_dir / f"{file_path.stem}.ino")
         return base
 
     def _find_baseline_file(self) -> Path | None:
@@ -119,14 +121,14 @@ class FlashingService:
                 return preferred
         return candidates[0]
 
-    def _resolve_sketch(self, workspace: Path, sketch_main: Optional[str]) -> Path:
+    def _resolve_sketch_dir(self, workspace: Path, sketch_main: Optional[str]) -> Path:
         if sketch_main:
             sketch = workspace / sketch_main
             if sketch.exists():
-                return sketch
+                return sketch.parent
         ino_files = list(workspace.rglob("*.ino"))
         if len(ino_files) == 1:
-            return ino_files[0]
+            return ino_files[0].parent
         raise FileNotFoundError("unable to resolve sketch entry point")
 
     async def _run_cmd(self, cmd: list[str]) -> tuple[str, str, bool]:

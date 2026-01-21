@@ -25,6 +25,13 @@
     const t2 = document.getElementById("t2-value");
     const t3 = document.getElementById("t3-value");
     const drain = document.getElementById("drain-valve-state");
+    const p1 = document.getElementById("p1-value");
+    const p2 = document.getElementById("p2-value");
+    const flow = document.getElementById("flow-value");
+    const heater = document.getElementById("heater-value");
+    const pump = document.getElementById("pump-value");
+    const fan = document.getElementById("fan-value");
+    const fault = document.getElementById("fault-value");
     if (t1) t1.textContent = payload.t1 ?? "n/a";
     if (t2) t2.textContent = payload.t2 ?? "n/a";
     if (t3) t3.textContent = payload.t3 ?? "n/a";
@@ -33,6 +40,13 @@
       else if (payload.drain_valve === 1) drain.textContent = "open";
       else drain.textContent = "unknown";
     }
+    if (p1) p1.textContent = payload.p1 ?? "n/a";
+    if (p2) p2.textContent = payload.p2 ?? "n/a";
+    if (flow) flow.textContent = payload.flow ?? "n/a";
+    if (heater) heater.textContent = payload.heater ?? "n/a";
+    if (pump) pump.textContent = payload.pump ?? "n/a";
+    if (fan) fan.textContent = Array.isArray(payload.fan) ? payload.fan.join(", ") : "n/a";
+    if (fault) fault.textContent = payload.fault ?? "n/a";
   }
 
   function postJSON(url, body) {
@@ -40,6 +54,13 @@
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
+    });
+  }
+
+  function setFormDisabled(form, disabled) {
+    if (!form) return;
+    Array.from(form.elements).forEach((el) => {
+      el.disabled = disabled;
     });
   }
 
@@ -94,14 +115,35 @@
     const modeBaseline = document.getElementById("mode-baseline");
     const modeStudent = document.getElementById("mode-student");
     const modeStatus = document.getElementById("student-mode-status");
+    const teacherActuatorsForm = document.getElementById("teacher-actuators-form");
+    const teacherActuatorsNote = document.getElementById("teacher-actuators-note");
+    const studentModeView = document.getElementById("student-mode-view");
+    const studentModeNote = document.getElementById("student-mode-note");
+    const firmwareForm = document.getElementById("firmware-form");
+
     async function refreshMode() {
-      if (!modeStatus) return;
       const resp = await fetch("/api/teacher/student_mode");
       const json = await resp.json();
-      modeStatus.textContent = json.mode || "unknown";
+      if (modeStatus) modeStatus.textContent = json.mode || "unknown";
+      if (studentModeView) studentModeView.textContent = json.mode || "unknown";
       if (json.warning) {
         const warn = document.getElementById("mode-warning");
         if (warn) warn.textContent = json.warning;
+      }
+      const baselineEnabled = json.mode === "baseline";
+      if (teacherActuatorsForm) {
+        setFormDisabled(teacherActuatorsForm, !baselineEnabled);
+        if (teacherActuatorsNote) {
+          teacherActuatorsNote.textContent = baselineEnabled ? "" : "Student firmware controls actuators.";
+        }
+      }
+      if (firmwareForm) {
+        setFormDisabled(firmwareForm, json.mode !== "student");
+        if (studentModeNote) {
+          studentModeNote.textContent = json.mode === "student"
+            ? "Upload is enabled by teacher."
+            : "Upload disabled; teacher must enable student firmware mode.";
+        }
       }
     }
     if (modeBaseline) {
@@ -111,6 +153,7 @@
         if (modeStatus) modeStatus.textContent = json.mode || "baseline";
         const warn = document.getElementById("mode-warning");
         if (warn) warn.textContent = json.warning || "";
+        refreshMode();
       });
     }
     if (modeStudent) {
@@ -120,23 +163,24 @@
         if (modeStatus) modeStatus.textContent = json.mode || "student";
         const warn = document.getElementById("mode-warning");
         if (warn) warn.textContent = json.warning || "";
+        refreshMode();
       });
     }
     refreshMode();
 
-    const actuatorsForm = document.getElementById("actuators-form");
-    if (actuatorsForm) {
-      actuatorsForm.addEventListener("submit", async (e) => {
+    const teacherForm = document.getElementById("teacher-actuators-form");
+    if (teacherForm) {
+      teacherForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const payload = {
-          pump: Number(document.getElementById("pump").value || 0),
+          pump: Number(document.getElementById("teacher-pump").value || 0),
           fan: [
-            Number(document.getElementById("fan1").value || 0),
-            Number(document.getElementById("fan2").value || 0),
-            Number(document.getElementById("fan3").value || 0)
+            Number(document.getElementById("teacher-fan1").value || 0),
+            Number(document.getElementById("teacher-fan2").value || 0),
+            Number(document.getElementById("teacher-fan3").value || 0)
           ]
         };
-        await postJSON("/api/student/actuators", payload);
+        await postJSON("/api/teacher/actuators", payload);
       });
     }
 

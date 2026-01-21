@@ -63,8 +63,8 @@ curl -X POST http://localhost:8000/api/teacher/heater/random \
 # stop heater
 curl -X POST http://localhost:8000/api/teacher/heater/stop
 
-# student actuators
-curl -X POST http://localhost:8000/api/student/actuators \
+# teacher actuators (baseline only)
+curl -X POST http://localhost:8000/api/teacher/actuators \
   -H 'Content-Type: application/json' \
   -d '{"pump":120,"fan":[80,70,60]}'
 
@@ -101,10 +101,12 @@ curl -X POST http://localhost:8000/api/student/firmware/upload \
 ## Student mode и baseline
 
 Преподаватель переключает режим Arduino #2:
-- `baseline`: web-actuators разрешены, upload студента отключен.
+- `baseline`: web-actuators доступны преподавателю, upload студента отключен.
 - `student`: upload студента разрешен, web-actuators отключены.
 
 При `baseline` сервер пытается прошить baseline-скетч, если он добавлен в `app/baseline_firmware/`. Если базовая прошивка не предоставлена, режим все равно включится и вернет предупреждение.
+
+В интерфейсе студента управления насосом/вентиляторами нет — ручное управление доступно только преподавателю.
 
 ## Docker + serial
 
@@ -124,4 +126,4 @@ Windows/Mac: доступ к serial из Docker обычно затруднен.
 
 - В `SIM_MODE` прошивка может быть отключена через `UPLOAD_ENABLED=false`.
 - Протокол serial v0.1 поддерживается на уровне JSON Lines, ошибки парсинга игнорируются.
-- `drain_valve` и `heater` всегда идут только на SAFETY_PORT, прошивка всегда только на STUDENT_PORT.
+- `drain_valve` и `heater` всегда идут только на SAFETY_PORT, прошивка всегда только на STUDENT_PORT. Команды pump/fan идут только на STUDENT_PORT.

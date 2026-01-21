@@ -1,43 +1,13 @@
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 
 from app.config import settings
-from app.services.serial_manager import SerialManager
 
 router = APIRouter(prefix="/api/student", tags=["student"])
-
-
-class ActuatorRequest(BaseModel):
-    pump: int = Field(ge=0, le=255)
-    fan: List[int] = Field(min_length=3, max_length=3)
-
-
-@router.post("/actuators")
-async def set_actuators(payload: ActuatorRequest, request: Request) -> dict:
-    if request.app.state.student_mode != "baseline":
-        return JSONResponse(
-            status_code=409,
-            content={
-                "ok": False,
-                "error": "Student firmware mode enabled by teacher; web actuators disabled.",
-            },
-        )
-    if any(v < 0 or v > 255 for v in payload.fan):
-        raise HTTPException(status_code=400, detail="fan values out of range")
-    simulator = request.app.state.simulator
-    if simulator:
-        simulator.set_actuators(payload.pump, payload.fan)
-    seq = request.app.state.student_seq
-    request.app.state.student_seq += 1
-    cmd = SerialManager.build_cmd(seq, {"pump": payload.pump, "fan": payload.fan})
-    await request.app.state.serial_student.send_command(cmd)
-    await request.app.state.db.insert_event("student", "actuators", payload.model_dump())
-    return {"ok": True}
 
 
 @router.post("/firmware/upload")

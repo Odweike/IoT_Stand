@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from app.services.scenario_engine import RandomScenarioConfig
@@ -25,6 +26,11 @@ class DrainValveRequest(BaseModel):
 
 class StudentModeRequest(BaseModel):
     mode: str = Field(pattern="^(baseline|student)$")
+
+
+class ActuatorRequest(BaseModel):
+    pump: int = Field(ge=0, le=255)
+    fan: list[int] = Field(min_length=3, max_length=3)
 
 
 @router.post("/heater/manual")
@@ -74,6 +80,29 @@ async def drain_valve(payload: DrainValveRequest, request: Request) -> dict:
     await request.app.state.serial_safety.send_command(cmd)
     await request.app.state.db.insert_event("teacher", "drain_valve", payload.model_dump())
     return {"ok": True, "open": payload.open}
+
+
+@router.post("/actuators")
+async def set_actuators(payload: ActuatorRequest, request: Request) -> dict:
+    if request.app.state.student_mode != "baseline":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "error": "Student firmware mode enabled; web actuators disabled.",
+            },
+        )
+    if any(v < 0 or v > 255 for v in payload.fan):
+        raise HTTPException(status_code=400, detail="fan values out of range")
+    simulator = request.app.state.simulator
+    if simulator:
+        simulator.set_actuators(payload.pump, payload.fan)
+    seq = request.app.state.student_seq
+    request.app.state.student_seq += 1
+    cmd = request.app.state.serial_student.build_cmd(seq, {"pump": payload.pump, "fan": payload.fan})
+    await request.app.state.serial_student.send_command(cmd)
+    await request.app.state.db.insert_event("teacher", "actuators_set", payload.model_dump())
+    return {"ok": True}
 
 
 @router.get("/student_mode")

@@ -13,26 +13,9 @@
   </header>
 
   <section class="panel">
-    <h2>Actuators</h2>
-    <form id="actuators-form" class="grid">
-      <label>Pump (0-255)
-        <input id="pump" type="number" min="0" max="255" value="0" />
-      </label>
-      <label>Fan 1
-        <input id="fan1" type="number" min="0" max="255" value="0" />
-      </label>
-      <label>Fan 2
-        <input id="fan2" type="number" min="0" max="255" value="0" />
-      </label>
-      <label>Fan 3
-        <input id="fan3" type="number" min="0" max="255" value="0" />
-      </label>
-      <button type="submit">Apply</button>
-    </form>
-  </section>
-
-  <section class="panel">
     <h2>Firmware Upload (Arduino #2)</h2>
+    <p>Current mode: <strong id="student-mode-view">unknown</strong></p>
+    <p id="student-mode-note" class="muted"></p>
     <form id="firmware-form" class="grid">
       <label>Sketch (.ino or .zip)
         <input id="firmware-file" type="file" accept=".ino,.zip" />
@@ -54,6 +37,20 @@
       <div><strong>T1:</strong> <span id="t1-value">n/a</span></div>
       <div><strong>T2:</strong> <span id="t2-value">n/a</span></div>
       <div><strong>T3:</strong> <span id="t3-value">n/a</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Telemetry Snapshot</h2>
+    <div class="grid">
+      <div><strong>P1:</strong> <span id="p1-value">n/a</span></div>
+      <div><strong>P2:</strong> <span id="p2-value">n/a</span></div>
+      <div><strong>Flow:</strong> <span id="flow-value">n/a</span></div>
+      <div><strong>Heater:</strong> <span id="heater-value">n/a</span></div>
+      <div><strong>Pump:</strong> <span id="pump-value">n/a</span></div>
+      <div><strong>Fan:</strong> <span id="fan-value">n/a</span></div>
+      <div><strong>Fault:</strong> <span id="fault-value">n/a</span></div>
+      <div><strong>Drain:</strong> <span id="drain-valve-state">unknown</span></div>
     </div>
   </section>
 
