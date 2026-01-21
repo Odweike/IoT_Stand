@@ -38,6 +38,7 @@ async def firmware_upload(
         handle.write(await file.read())
 
     try:
+        await request.app.state.serial_student.stop()
         result = await request.app.state.flashing.flash_sketch(
             temp_path,
             board_fqbn=board_fqbn,
@@ -46,6 +47,7 @@ async def firmware_upload(
     except FileNotFoundError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     finally:
+        await request.app.state.serial_student.start()
         if temp_path.exists():
             temp_path.unlink()
 

@@ -8,11 +8,11 @@ services:
     env_file:
       - .env
     environment:
-      SIM_MODE: "true"
-      SAFETY_PORT: "/dev/ttyACM0"
-      STUDENT_PORT: "/dev/ttyACM1"
-      BAUDRATE: "115200"
-      UPLOAD_ENABLED: "false"
+      SIM_MODE: "${SIM_MODE:-true}"
+      SAFETY_PORT: "${SAFETY_PORT:-/dev/ttyACM0}"
+      STUDENT_PORT: "${STUDENT_PORT:-/dev/ttyACM1}"
+      BAUDRATE: "${BAUDRATE:-115200}"
+      UPLOAD_ENABLED: "${UPLOAD_ENABLED:-false}"
     volumes:
       - ./data:/data
     # Linux example to enable serial access:
