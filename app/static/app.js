@@ -184,7 +184,6 @@
       });
     }
 
-    const firmwareForm = document.getElementById("firmware-form");
     if (firmwareForm) {
       firmwareForm.addEventListener("submit", async (e) => {
         e.preventDefault();
