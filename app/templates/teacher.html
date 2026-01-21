@@ -49,6 +49,31 @@
   </section>
 
   <section class="panel">
+    <h2>Drain Valve</h2>
+    <p>State: <strong id="drain-valve-state">unknown</strong></p>
+    <button id="drain-open">Open Drain</button>
+    <button id="drain-close" class="danger">Close Drain</button>
+  </section>
+
+  <section class="panel">
+    <h2>Student Arduino Mode (#2)</h2>
+    <p>Current mode: <strong id="student-mode-status">unknown</strong></p>
+    <p id="mode-warning" class="muted"></p>
+    <button id="mode-baseline">Enable Baseline (Web-control)</button>
+    <button id="mode-student" class="danger">Allow Student Firmware</button>
+    <p class="muted">When student mode is enabled, web actuators are disabled.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Temperatures</h2>
+    <div class="grid">
+      <div><strong>T1:</strong> <span id="t1-value">n/a</span></div>
+      <div><strong>T2:</strong> <span id="t2-value">n/a</span></div>
+      <div><strong>T3:</strong> <span id="t3-value">n/a</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
     <h2>Telemetry</h2>
     <pre id="telemetry">waiting...</pre>
   </section>

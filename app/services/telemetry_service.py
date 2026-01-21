@@ -41,6 +41,7 @@ class TelemetryService:
                 ts=int(payload.get("ts", time.time() * 1000)),
                 t1=payload.get("t1"),
                 t2=payload.get("t2"),
+                t3=payload.get("t3"),
                 p1=payload.get("p1"),
                 p2=payload.get("p2"),
                 flow=payload.get("flow"),
@@ -50,6 +51,7 @@ class TelemetryService:
                 fan2=fan2,
                 fan3=fan3,
                 fault=payload.get("fault"),
+                drain_valve=payload.get("drain_valve"),
                 source_device=source_device,
             )
         )
@@ -76,10 +78,12 @@ class TelemetrySimulator:
         self._fan = [0, 0, 0]
         self._t1 = 23.0
         self._t2 = 25.0
+        self._t3 = 24.0
         self._p1 = 1.0
         self._p2 = 1.0
         self._flow = 2.0
         self._phase = 0.0
+        self._drain_valve = 0
 
     def set_heater(self, power: int) -> None:
         self._heater = max(0, min(100, int(power)))
@@ -87,6 +91,9 @@ class TelemetrySimulator:
     def set_actuators(self, pump: int, fan: list[int]) -> None:
         self._pump = max(0, min(255, int(pump)))
         self._fan = [max(0, min(255, int(v))) for v in fan]
+
+    def set_drain_valve(self, open_state: bool) -> None:
+        self._drain_valve = 1 if open_state else 0
 
     async def start(self) -> None:
         if self._task:
@@ -106,6 +113,7 @@ class TelemetrySimulator:
             self._t2 = max(18.0, min(85.0, self._t2))
             self._t1 += (ambient - self._t1) * 0.02
             self._t2 += (ambient - self._t2) * 0.01
+            self._t3 = ((self._t1 + self._t2) / 2.0) + random.uniform(-0.3, 0.3)
 
             self._p1 = 1.0 + random.uniform(-0.05, 0.05)
             self._p2 = 1.0 + random.uniform(-0.05, 0.05)
@@ -117,12 +125,14 @@ class TelemetrySimulator:
                 "ts": int(time.time() * 1000),
                 "t1": round(self._t1, 2),
                 "t2": round(self._t2, 2),
+                "t3": round(self._t3, 2),
                 "p1": round(self._p1, 2),
                 "p2": round(self._p2, 2),
                 "flow": round(self._flow, 2),
                 "heater": self._heater,
                 "pump": self._pump,
                 "fan": self._fan,
+                "drain_valve": self._drain_valve,
                 "fault": 0,
             }
             await self._telemetry.update(payload, "simulator")

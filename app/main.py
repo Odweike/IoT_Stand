@@ -83,6 +83,9 @@ async def startup() -> None:
     app.state.scenario_engine = ScenarioEngine(safety_serial, simulator)
     app.state.flashing = FlashingService()
     app.state.student_seq = 1
+    app.state.safety_seq = 1
+    app.state.student_mode = "baseline"
+    app.state.config = settings
 
     await safety_serial.start()
     await student_serial.start()

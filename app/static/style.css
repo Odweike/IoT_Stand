@@ -81,6 +81,11 @@ pre {
   font-size: 12px;
 }
 
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 @media (max-width: 600px) {
   body {
     padding: 16px;

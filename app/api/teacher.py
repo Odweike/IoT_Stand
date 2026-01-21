@@ -19,6 +19,14 @@ class RandomHeaterRequest(BaseModel):
     off_max_s: int = Field(ge=1, le=3600)
 
 
+class DrainValveRequest(BaseModel):
+    open: bool
+
+
+class StudentModeRequest(BaseModel):
+    mode: str = Field(pattern="^(baseline|student)$")
+
+
 @router.post("/heater/manual")
 async def heater_manual(payload: ManualHeaterRequest, request: Request) -> dict:
     engine = request.app.state.scenario_engine
@@ -53,3 +61,47 @@ async def heater_stop(request: Request) -> dict:
     await engine.stop()
     await request.app.state.db.insert_event("teacher", "heater_stop", {})
     return {"ok": True}
+
+
+@router.post("/drain_valve")
+async def drain_valve(payload: DrainValveRequest, request: Request) -> dict:
+    simulator = request.app.state.simulator
+    if simulator:
+        simulator.set_drain_valve(payload.open)
+    seq = request.app.state.safety_seq
+    request.app.state.safety_seq += 1
+    cmd = request.app.state.serial_safety.build_cmd(seq, {"drain_valve": 1 if payload.open else 0})
+    await request.app.state.serial_safety.send_command(cmd)
+    await request.app.state.db.insert_event("teacher", "drain_valve", payload.model_dump())
+    return {"ok": True, "open": payload.open}
+
+
+@router.get("/student_mode")
+async def get_student_mode(request: Request) -> dict:
+    return {"ok": True, "mode": request.app.state.student_mode}
+
+
+@router.post("/student_mode")
+async def set_student_mode(payload: StudentModeRequest, request: Request) -> dict:
+    mode = payload.mode
+    request.app.state.student_mode = mode
+    warning = None
+    result = None
+    if mode == "baseline" and request.app.state.config.upload_enabled:
+        result = await request.app.state.flashing.flash_baseline()
+        if not result.ok:
+            warning = result.message
+    if mode == "student" and not request.app.state.config.upload_enabled:
+        warning = "upload disabled by configuration"
+    await request.app.state.db.insert_event("teacher", "student_mode", payload.model_dump())
+    response = {"ok": True, "mode": mode}
+    if warning:
+        response["warning"] = warning
+    if result:
+        response["baseline_flash"] = {
+            "ok": result.ok,
+            "message": result.message,
+            "compile": {"stdout": result.compile_stdout, "stderr": result.compile_stderr},
+            "upload": {"stdout": result.upload_stdout, "stderr": result.upload_stderr},
+        }
+    return response

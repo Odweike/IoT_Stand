@@ -12,6 +12,7 @@ class TelemetryRecord:
     ts: int
     t1: float | None
     t2: float | None
+    t3: float | None
     p1: float | None
     p2: float | None
     flow: float | None
@@ -21,6 +22,7 @@ class TelemetryRecord:
     fan2: int | None
     fan3: int | None
     fault: int | None
+    drain_valve: int | None
     source_device: str
 
 
@@ -39,6 +41,7 @@ class Database:
                 ts INTEGER,
                 t1 REAL,
                 t2 REAL,
+                t3 REAL,
                 p1 REAL,
                 p2 REAL,
                 flow REAL,
@@ -48,6 +51,7 @@ class Database:
                 fan2 INTEGER,
                 fan3 INTEGER,
                 fault INTEGER,
+                drain_valve INTEGER,
                 source_device TEXT
             )
             """
@@ -62,7 +66,16 @@ class Database:
             )
             """
         )
+        self._ensure_columns(cur)
         self._conn.commit()
+
+    def _ensure_columns(self, cur: sqlite3.Cursor) -> None:
+        cur.execute("PRAGMA table_info(telemetry)")
+        columns = {row[1] for row in cur.fetchall()}
+        if "t3" not in columns:
+            cur.execute("ALTER TABLE telemetry ADD COLUMN t3 REAL")
+        if "drain_valve" not in columns:
+            cur.execute("ALTER TABLE telemetry ADD COLUMN drain_valve INTEGER")
 
     async def insert_telemetry(self, record: TelemetryRecord) -> None:
         async with self._lock:
@@ -73,13 +86,14 @@ class Database:
         cur.execute(
             """
             INSERT INTO telemetry (
-                ts, t1, t2, p1, p2, flow, heater, pump, fan1, fan2, fan3, fault, source_device
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ts, t1, t2, t3, p1, p2, flow, heater, pump, fan1, fan2, fan3, fault, drain_valve, source_device
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 record.ts,
                 record.t1,
                 record.t2,
+                record.t3,
                 record.p1,
                 record.p2,
                 record.flow,
@@ -89,6 +103,7 @@ class Database:
                 record.fan2,
                 record.fan3,
                 record.fault,
+                record.drain_valve,
                 record.source_device,
             ),
         )

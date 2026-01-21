@@ -49,6 +49,25 @@
   </section>
 
   <section class="panel">
+    <h2>Temperatures</h2>
+    <div class="grid">
+      <div><strong>T1:</strong> <span id="t1-value">n/a</span></div>
+      <div><strong>T2:</strong> <span id="t2-value">n/a</span></div>
+      <div><strong>T3:</strong> <span id="t3-value">n/a</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Serial contract for student firmware (#2)</h2>
+    <p>Baudrate: <strong>115200</strong></p>
+    <p>JSON Lines: 1 JSON = 1 line + <code>\\n</code></p>
+    <p>Send 5–10 Hz telemetry so the web UI can reflect pump/fans:</p>
+    <pre>{"type":"telemetry","ver":"0.1","ts":...,"pump":120,"fan":[80,70,60]}</pre>
+    <p class="muted">Optional fields: <code>fan_rpm</code>, <code>pump_rpm</code>.</p>
+    <p class="muted">If teacher enables student firmware mode, web actuators are disabled and control is from the sketch.</p>
+  </section>
+
+  <section class="panel">
     <h2>Telemetry</h2>
     <pre id="telemetry">waiting...</pre>
   </section>

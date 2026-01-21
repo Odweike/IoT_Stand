@@ -79,6 +79,23 @@ class FlashingService:
                 message="uploaded" if upload_ok else "upload failed",
             )
 
+    async def flash_baseline(self) -> FlashResult:
+        baseline_file = self._find_baseline_file()
+        if baseline_file is None:
+            return FlashResult(
+                ok=False,
+                compile_stdout="",
+                compile_stderr="",
+                upload_stdout="",
+                upload_stderr="",
+                message="baseline firmware not provided",
+            )
+        return await self.flash_sketch(
+            baseline_file,
+            board_fqbn=settings.baseline_fqbn,
+            sketch_main=settings.baseline_sketch_main,
+        )
+
     def _prepare_workspace(self, file_path: Path) -> Path:
         ts = int(time.time() * 1000)
         base = Path(settings.data_dir) / "uploads" / "student" / str(ts)
@@ -89,6 +106,18 @@ class FlashingService:
         else:
             shutil.copy(file_path, base / file_path.name)
         return base
+
+    def _find_baseline_file(self) -> Path | None:
+        base = Path("app") / "baseline_firmware"
+        if not base.exists():
+            return None
+        candidates = list(base.glob("*.ino")) + list(base.glob("*.zip"))
+        if not candidates:
+            return None
+        for preferred in candidates:
+            if preferred.name.lower().startswith("baseline"):
+                return preferred
+        return candidates[0]
 
     def _resolve_sketch(self, workspace: Path, sketch_main: Optional[str]) -> Path:
         if sketch_main:

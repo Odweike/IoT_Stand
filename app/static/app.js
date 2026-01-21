@@ -13,10 +13,26 @@
       try {
         const payload = JSON.parse(event.data);
         telemetryEl.textContent = JSON.stringify(payload, null, 2);
+        updateTelemetryFields(payload);
       } catch {
         telemetryEl.textContent = event.data;
       }
     };
+  }
+
+  function updateTelemetryFields(payload) {
+    const t1 = document.getElementById("t1-value");
+    const t2 = document.getElementById("t2-value");
+    const t3 = document.getElementById("t3-value");
+    const drain = document.getElementById("drain-valve-state");
+    if (t1) t1.textContent = payload.t1 ?? "n/a";
+    if (t2) t2.textContent = payload.t2 ?? "n/a";
+    if (t3) t3.textContent = payload.t3 ?? "n/a";
+    if (drain) {
+      if (payload.drain_valve === 0) drain.textContent = "closed";
+      else if (payload.drain_valve === 1) drain.textContent = "open";
+      else drain.textContent = "unknown";
+    }
   }
 
   function postJSON(url, body) {
@@ -61,6 +77,52 @@
         await postJSON("/api/teacher/heater/stop", {});
       });
     }
+
+    const drainOpen = document.getElementById("drain-open");
+    const drainClose = document.getElementById("drain-close");
+    if (drainOpen) {
+      drainOpen.addEventListener("click", async () => {
+        await postJSON("/api/teacher/drain_valve", { open: true });
+      });
+    }
+    if (drainClose) {
+      drainClose.addEventListener("click", async () => {
+        await postJSON("/api/teacher/drain_valve", { open: false });
+      });
+    }
+
+    const modeBaseline = document.getElementById("mode-baseline");
+    const modeStudent = document.getElementById("mode-student");
+    const modeStatus = document.getElementById("student-mode-status");
+    async function refreshMode() {
+      if (!modeStatus) return;
+      const resp = await fetch("/api/teacher/student_mode");
+      const json = await resp.json();
+      modeStatus.textContent = json.mode || "unknown";
+      if (json.warning) {
+        const warn = document.getElementById("mode-warning");
+        if (warn) warn.textContent = json.warning;
+      }
+    }
+    if (modeBaseline) {
+      modeBaseline.addEventListener("click", async () => {
+        const resp = await postJSON("/api/teacher/student_mode", { mode: "baseline" });
+        const json = await resp.json();
+        if (modeStatus) modeStatus.textContent = json.mode || "baseline";
+        const warn = document.getElementById("mode-warning");
+        if (warn) warn.textContent = json.warning || "";
+      });
+    }
+    if (modeStudent) {
+      modeStudent.addEventListener("click", async () => {
+        const resp = await postJSON("/api/teacher/student_mode", { mode: "student" });
+        const json = await resp.json();
+        if (modeStatus) modeStatus.textContent = json.mode || "student";
+        const warn = document.getElementById("mode-warning");
+        if (warn) warn.textContent = json.warning || "";
+      });
+    }
+    refreshMode();
 
     const actuatorsForm = document.getElementById("actuators-form");
     if (actuatorsForm) {

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from app.config import settings
@@ -18,6 +19,14 @@ class ActuatorRequest(BaseModel):
 
 @router.post("/actuators")
 async def set_actuators(payload: ActuatorRequest, request: Request) -> dict:
+    if request.app.state.student_mode != "baseline":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "error": "Student firmware mode enabled by teacher; web actuators disabled.",
+            },
+        )
     if any(v < 0 or v > 255 for v in payload.fan):
         raise HTTPException(status_code=400, detail="fan values out of range")
     simulator = request.app.state.simulator
@@ -38,6 +47,14 @@ async def firmware_upload(
     board_fqbn: str = Form(...),
     sketch_main: Optional[str] = Form(None),
 ) -> dict:
+    if request.app.state.student_mode != "student":
+        return JSONResponse(
+            status_code=409,
+            content={
+                "ok": False,
+                "error": "Firmware upload disabled; teacher must enable student mode.",
+            },
+        )
     if file.filename is None:
         raise HTTPException(status_code=400, detail="missing file")
     suffix = Path(file.filename).suffix.lower()
