@@ -125,11 +125,22 @@ class FlashingService:
         if sketch_main:
             sketch = workspace / sketch_main
             if sketch.exists():
-                return sketch.parent
+                return self._normalize_sketch_dir(workspace, sketch)
         ino_files = list(workspace.rglob("*.ino"))
         if len(ino_files) == 1:
-            return ino_files[0].parent
+            return self._normalize_sketch_dir(workspace, ino_files[0])
         raise FileNotFoundError("unable to resolve sketch entry point")
+
+    def _normalize_sketch_dir(self, workspace: Path, sketch: Path) -> Path:
+        stem = sketch.stem
+        parent = sketch.parent
+        if parent.name == stem:
+            return parent
+        target_dir = workspace / stem
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / f"{stem}.ino"
+        shutil.move(str(sketch), str(target_path))
+        return target_dir
 
     async def _run_cmd(self, cmd: list[str]) -> tuple[str, str, bool]:
         def _run() -> tuple[str, str, bool]:
